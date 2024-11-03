@@ -19,9 +19,11 @@ pub struct Root {
 
 #[derive(Subcommand, Debug)]
 pub enum Command {
+    /// Install the cli
     #[command(disable_version_flag = true)]
     Install(Installer),
 
+    /// Update the cli to latest or specific version
     #[command(disable_version_flag = true)]
     Update(Updater),
 }
