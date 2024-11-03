@@ -1,0 +1,24 @@
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+
+name: Continuous Integration
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: stable
+                  components: clippy, rustfmt
+            - uses: Swatinem/rust-cache@v2
+            - name: Clippy
+              run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+            - name: Rustfmt
+              run: cargo fmt --all --check
+            - name: Check
+              run: cargo check --workspace --all-targets --all-features
