@@ -40,7 +40,7 @@ pub async fn update_latest() -> eyre::Result<()> {
     let current_parts = get_version_parts(&current_version);
     let latest_parts = get_version_parts(&latest_version);
 
-    if current_parts[2] != latest_parts[2] {
+    if current_parts[1] < latest_parts[1] {
         println!(
             "{} {}",
             "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
