@@ -54,7 +54,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         .assets
         .iter()
         .find(|asset| asset.name == asset_name)
-        .ok_or_else(|| eyre::eyre!("No matching release asset found for {}", asset_name))?;
+        .ok_or(eyre::eyre!("No matching release asset found for {asset_name}"))?;
 
     let version_display = version.unwrap_or_else(|| {
         release
