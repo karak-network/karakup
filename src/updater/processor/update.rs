@@ -9,7 +9,7 @@ fn compare_versions(v1: &str, v2: &str) -> std::cmp::Ordering {
     let v1_parts: Vec<u32> = v1
         .trim()
         .split('.')
-        .map(|s| s.parse().unwrap_or(0))
+        .map(|s| s.parse().unwrap_or_default())
         .collect();
     let v2_parts: Vec<u32> = v2
         .trim()
