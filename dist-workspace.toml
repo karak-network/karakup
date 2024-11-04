@@ -21,8 +21,6 @@ install-path = "~/.karak/bin"
 install-updater = false
 # Where to host releases
 hosting = "github"
-# Whether to enable GitHub Attestations
-github-attestations = true
 # Which actions to run on pull requests
 pr-run-mode = "upload"
 
