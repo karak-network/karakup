@@ -18,7 +18,6 @@ use reqwest;
 use crate::constants::{CLI_NAME, INSTALL_DIR};
 
 pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
-    // Existing platform detection code remains the same
     let (platform, os, vendor) = match OS {
         "linux" => ("unknown", "linux", "gnu"),
         "macos" => ("apple", "darwin", ""),
@@ -77,8 +76,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         ProgressStyle::default_bar()
             .template(
                 "{spinner:.green} [{elapsed_precise}] {bar:40.white} {bytes}/{total_bytes} ({eta})",
-            )
-            .unwrap()
+            )?
             .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ "),
     );
 
