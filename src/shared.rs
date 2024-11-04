@@ -4,7 +4,7 @@ use std::{
         var,
     },
     fs::{self, File},
-    io::copy,
+    io::Write,
     os::unix::fs::PermissionsExt,
     path::PathBuf,
     process::Command,
@@ -12,12 +12,13 @@ use std::{
 
 use color_eyre::eyre;
 use color_eyre::owo_colors::OwoColorize;
+use indicatif::{ProgressBar, ProgressStyle};
 use reqwest;
 
 use crate::constants::{CLI_NAME, INSTALL_DIR};
 
 pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
-    // Determine platform-specific asset name
+    // Existing platform detection code remains the same
     let (platform, os, vendor) = match OS {
         "linux" => ("unknown", "linux", "gnu"),
         "macos" => ("apple", "darwin", ""),
@@ -29,6 +30,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         "aarch64" => "aarch64",
         _ => return Err(eyre::eyre!("Unsupported architecture: {}", ARCH)),
     };
+
     let octocrab = octocrab::instance();
     let repo = octocrab.repos("karak-network", "karak-rs");
     let releases_api = repo.releases();
@@ -45,38 +47,63 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     let asset_name = if OS == "macos" {
         format!("karak-cli-{architecture}-{platform}-{os}.tar.xz")
     } else {
-        format!(
-            "karak-cli-{architecture}-{platform}-{os}-{vendor}.tar.xz",
-        )
+        format!("karak-cli-{architecture}-{platform}-{os}-{vendor}.tar.xz",)
     };
 
     let asset = release
         .assets
         .iter()
         .find(|asset| asset.name == asset_name)
-        .ok_or(eyre::eyre!("No matching release asset found for {asset_name}"))?;
+        .ok_or(eyre::eyre!(
+            "No matching release asset found for {asset_name}"
+        ))?;
 
     let version_display = version.unwrap_or(
         release
             .tag_name
             .strip_prefix("karak-cli-v")
             .unwrap_or(&release.tag_name)
-            .to_string()
+            .to_string(),
     );
     println!(
-        "\n{}{}",
+        "\n{}{}\n",
         "📦 Downloading Karak CLI version - ".cyan(),
         version_display.cyan()
+    );
+
+    // Create progress bar
+    let progress_bar = ProgressBar::new(asset.size as u64);
+    progress_bar.set_style(
+        ProgressStyle::default_bar()
+            .template(
+                "{spinner:.green} [{elapsed_precise}] {bar:40.white} {bytes}/{total_bytes} ({eta})",
+            )
+            .unwrap()
+            .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ "),
     );
 
     // Create and download to temp directory
     let temp_dir = tempfile::tempdir()?;
     let download_path = temp_dir.path().join(&asset_name);
-    let response = reqwest::get(asset.browser_download_url.as_str()).await?;
     let mut file = File::create(&download_path)?;
-    copy(&mut response.bytes().await?.as_ref(), &mut file)?;
 
-    println!("{}", "📝 Extracting archive...".purple());
+    // Stream the download with progress
+    let client = reqwest::Client::new();
+    let mut response = client
+        .get(asset.browser_download_url.as_str())
+        .send()
+        .await?;
+
+    let mut downloaded: u64 = 0;
+    while let Some(chunk) = response.chunk().await? {
+        file.write_all(&chunk)?;
+        downloaded += chunk.len() as u64;
+        progress_bar.set_position(downloaded);
+    }
+
+    progress_bar.finish_with_message("Download completed");
+
+    println!("\n\n{}", "📝 Extracting archive...".purple());
 
     // Extract the archive
     let output = Command::new("tar")
@@ -108,7 +135,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
 
     println!(
         "{} {}",
-        "✨ Successfully installed Karak CLI to".green(),
+        "\n✨ Successfully installed Karak CLI to".green(),
         install_dir.display()
     );
 
