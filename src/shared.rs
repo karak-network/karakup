@@ -46,8 +46,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         format!("karak-cli-{architecture}-{platform}-{os}.tar.xz")
     } else {
         format!(
-            "karak-cli-{}-{}-{}-{}.tar.xz",
-            architecture, platform, os, vendor
+            "karak-cli-{architecture}-{platform}-{os}-{vendor}.tar.xz",
         )
     };
 
