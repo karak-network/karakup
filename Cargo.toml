@@ -1,7 +1,11 @@
 [package]
 name = "karakup"
 version = "0.1.0"
+license = "BUSL-1.1"
+authors = ["Andalusia Labs"]
 edition = "2021"
+repository = "https://github.com/karak-network/karakup"
+rust-version = "1.79.0"
 
 [dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
@@ -13,3 +17,12 @@ octocrab = "0.41.2"
 reqwest = "0.12.9"
 tempfile = "3.13.0"
 tokio = { version = "1.41.0", features = ["full"] }
+
+[[bin]]
+name = "karakup"
+path = "src/main.rs"
+
+# The profile that 'cargo dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
