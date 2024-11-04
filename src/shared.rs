@@ -43,7 +43,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     };
 
     let asset_name = if OS == "macos" {
-        format!("karak-cli-{}-{}-{}.tar.xz", architecture, platform, os)
+        format!("karak-cli-{architecture}-{platform}-{os}.tar.xz")
     } else {
         format!(
             "karak-cli-{}-{}-{}-{}.tar.xz",
