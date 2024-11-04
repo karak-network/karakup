@@ -56,13 +56,13 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         .find(|asset| asset.name == asset_name)
         .ok_or(eyre::eyre!("No matching release asset found for {asset_name}"))?;
 
-    let version_display = version.unwrap_or_else(|| {
+    let version_display = version.unwrap_or(
         release
             .tag_name
             .strip_prefix("karak-cli-v")
             .unwrap_or(&release.tag_name)
             .to_string()
-    });
+    );
     println!(
         "\n{}{}",
         "📦 Downloading Karak CLI version - ".cyan(),
