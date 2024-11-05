@@ -80,9 +80,11 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
             .tick_chars("⠁⠂⠄⡀⢀⠠⠐⠈ "),
     );
 
-    // Create and download to temp directory
-    let temp_dir = tempfile::tempdir()?;
-    let download_path = temp_dir.path().join(&asset_name);
+    // Create install directory if it doesn't exist
+    let install_dir = PathBuf::from(INSTALL_DIR);
+    fs::create_dir_all(&install_dir)?;
+
+    let download_path = install_dir.join(&asset_name);
     let mut file = File::create(&download_path)?;
 
     // Stream the download with progress
@@ -103,15 +105,16 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
 
     println!("\n\n{}", "📝 Extracting archive...".purple());
 
-    // Extract the archive
+    // Extract the archive directly in install directory
     let output = Command::new("tar")
         .args([
             "xf",
             download_path.to_str().unwrap(),
             "--strip-components",
             "1",
+            "-C",
+            install_dir.to_str().unwrap(),
         ])
-        .current_dir(temp_dir.path())
         .output()?;
 
     if !output.status.success() {
@@ -121,15 +124,16 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
         ));
     }
 
-    // Install the binary
-    let install_dir = PathBuf::from(INSTALL_DIR);
-    fs::create_dir_all(&install_dir)?;
-    let binary_path = temp_dir.path().join("karak");
-    let install_path = install_dir.join(CLI_NAME);
-    fs::copy(&binary_path, &install_path)?;
-    println!("Debug: install_path: {}", install_path.display());
-    fs::set_permissions(&install_path, fs::Permissions::from_mode(0o755))?;
-    fs::remove_file(&binary_path)?;
+    // Clean up the downloaded tar file
+    fs::remove_file(download_path)?;
+
+    // Rename the binary to CLI_NAME
+    let extracted_binary = install_dir.join("karak");
+    let final_binary = install_dir.join(CLI_NAME);
+    fs::rename(extracted_binary, &final_binary)?;
+
+    // Set permissions on the binary
+    fs::set_permissions(&final_binary, fs::Permissions::from_mode(0o755))?;
 
     fs::write(install_dir.join(".bin_version"), &version_display)?;
 
