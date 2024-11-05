@@ -84,48 +84,44 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     let install_dir = PathBuf::from(INSTALL_DIR);
     fs::create_dir_all(&install_dir)?;
 
-    let download_path = install_dir.join(&asset_name);
-    let mut file = File::create(&download_path)?;
+    println!("\n\n{}", "📝 Downloading and extracting...".purple());
 
-    // Stream the download with progress
+    // Stream the download directly to tar
     let client = reqwest::Client::new();
     let mut response = client
         .get(asset.browser_download_url.as_str())
         .send()
         .await?;
 
-    let mut downloaded: u64 = 0;
-    while let Some(chunk) = response.chunk().await? {
-        file.write_all(&chunk)?;
-        downloaded += chunk.len() as u64;
-        progress_bar.set_position(downloaded);
-    }
-
-    progress_bar.finish_with_message("Download completed");
-
-    println!("\n\n{}", "📝 Extracting archive...".purple());
-
-    // Extract the archive directly in install directory
-    let output = Command::new("tar")
+    let mut child = Command::new("tar")
         .args([
             "xf",
-            download_path.to_str().unwrap(),
+            "-", // Read from stdin
             "--strip-components",
             "1",
             "-C",
             install_dir.to_str().unwrap(),
         ])
-        .output()?;
+        .stdin(std::process::Stdio::piped())
+        .spawn()?;
 
-    if !output.status.success() {
-        return Err(eyre::eyre!(
-            "Failed to extract archive: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
+    let mut stdin = child.stdin.take().unwrap();
+    let mut downloaded: u64 = 0;
+
+    while let Some(chunk) = response.chunk().await? {
+        stdin.write_all(&chunk)?;
+        downloaded += chunk.len() as u64;
+        progress_bar.set_position(downloaded);
     }
 
-    // Clean up the downloaded tar file
-    fs::remove_file(download_path)?;
+    drop(stdin); // Close stdin to signal EOF to tar
+
+    let status = child.wait()?;
+    if !status.success() {
+        return Err(eyre::eyre!("Failed to extract archive"));
+    }
+
+    progress_bar.finish_with_message("Download and extraction completed");
 
     // Rename the binary to CLI_NAME
     let extracted_binary = install_dir.join("karak");
