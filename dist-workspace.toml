@@ -21,6 +21,8 @@ install-path = "~/.karak/bin"
 install-updater = false
 # Where to host releases
 hosting = "github"
+# Which actions to run on pull requests
+pr-run-mode = "upload"
 
 [dist.github-custom-runners]
 aarch64-apple-darwin = "macos-latest"
