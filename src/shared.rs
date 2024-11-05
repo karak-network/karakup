@@ -127,6 +127,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     let binary_path = temp_dir.path().join("karak");
     let install_path = install_dir.join(CLI_NAME);
     fs::copy(&binary_path, &install_path)?;
+    println!("Debug: install_path: {}", install_path.display());
     fs::set_permissions(&install_path, fs::Permissions::from_mode(0o755))?;
     fs::remove_file(&binary_path)?;
 
