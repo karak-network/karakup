@@ -76,9 +76,10 @@ pub async fn install_version(version: Option<String>, update: bool) -> eyre::Res
             .to_string(),
     );
     println!(
-        "\n{}{}\n",
-        "📦 Downloading Karak CLI version - ".cyan(),
-        version_display.cyan()
+        "\n{}{}{}\n",
+        "📦 Downloading Karak CLI version ".cyan(),
+        version_display.cyan(),
+        "...".cyan()
     );
 
     // Create progress bar
@@ -149,8 +150,10 @@ pub async fn install_version(version: Option<String>, update: bool) -> eyre::Res
     fs::write(install_dir.join(".bin_version"), &version_display)?;
 
     println!(
-        "{} {}",
-        "\n✨ Successfully installed Karak CLI to".green().bold(),
+        "{} {} {} {}",
+        "\n✨ Successfully installed Karak CLI version".green(),
+        version_display.green(),
+        "to".green(),
         install_dir.display()
     );
 
