@@ -149,7 +149,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
 
     println!(
         "{} {}",
-        "\n✨ Successfully installed Karak CLI to".green(),
+        "\n✨ Successfully installed Karak CLI to".green().bold(),
         install_dir.display()
     );
 

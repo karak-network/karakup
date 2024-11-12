@@ -23,6 +23,10 @@ pub enum Command {
     #[command(disable_version_flag = true)]
     Install(Installer),
 
+    /// Uninstall the cli
+    #[command()]
+    Uninstall,
+
     /// Update the cli to latest or specific version
     #[command(disable_version_flag = true)]
     Update(Updater),

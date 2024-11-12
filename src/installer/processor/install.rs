@@ -21,7 +21,7 @@ pub async fn install_specific(version: String) -> eyre::Result<()> {
 fn print_post_install_message() {
     println!(
         "\nRun `{} {}` to get started",
-        CLI_NAME.green(),
-        "config update".green()
+        CLI_NAME.green().bold(),
+        "config update".green().bold()
     );
 }
