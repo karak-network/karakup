@@ -7,4 +7,4 @@ lazy_static::lazy_static! {
     pub static ref CONFIG_DIR: String = format!("{}/{}", env::var("HOME").unwrap_or_default(), ".karak");
 }
 
-pub const CLI_NAME: &str = "karak-cli";
+pub const CLI_NAME: &str = "karak";
