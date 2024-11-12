@@ -17,7 +17,18 @@ use reqwest;
 
 use crate::constants::{CLI_NAME, INSTALL_DIR};
 
-pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
+pub async fn install_version(version: Option<String>, update: bool) -> eyre::Result<()> {
+    let install_dir = PathBuf::from(&*INSTALL_DIR);
+    let install_path = install_dir.join(CLI_NAME);
+
+    // Check if binary already exists if not updating
+    if install_path.exists() && !update {
+        return Err(eyre::eyre!(
+            "\nKarak CLI is already installed at {}. \n\nTo update to a new version, use: `karakup update`",
+            install_path.display()
+        ));
+    }
+
     let (platform, os, vendor) = match OS {
         "linux" => ("unknown", "linux", "gnu"),
         "macos" => ("apple", "darwin", ""),
@@ -65,9 +76,10 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
             .to_string(),
     );
     println!(
-        "\n{}{}\n",
-        "📦 Downloading Karak CLI version - ".cyan(),
-        version_display.cyan()
+        "\n{}{}{}\n",
+        "📦 Downloading Karak CLI version ".cyan(),
+        version_display.cyan(),
+        "...".cyan()
     );
 
     // Create progress bar
@@ -122,18 +134,26 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     }
 
     // Install the binary
-    let install_dir = PathBuf::from(INSTALL_DIR);
     fs::create_dir_all(&install_dir)?;
     let binary_path = temp_dir.path().join("karak");
-    let install_path = install_dir.join(CLI_NAME);
-    fs::rename(binary_path, &install_path)?;
+
+    // Copy the binary
+    fs::copy(&binary_path, &install_path)
+        .map_err(|e| eyre::eyre!("Failed to copy binary to install location: {}", e))?;
+
+    // Set permissions
     fs::set_permissions(&install_path, fs::Permissions::from_mode(0o755))?;
+
+    // Clean up the temporary binary
+    fs::remove_file(&binary_path).ok(); // ignore error if it fails
 
     fs::write(install_dir.join(".bin_version"), &version_display)?;
 
     println!(
-        "{} {}",
-        "\n✨ Successfully installed Karak CLI to".green(),
+        "{} {} {} {}",
+        "\n✨ Successfully installed Karak CLI version".green(),
+        version_display.green(),
+        "to".green(),
         install_dir.display()
     );
 
@@ -172,7 +192,7 @@ pub async fn get_latest_version() -> eyre::Result<String> {
 }
 
 pub async fn get_current_version() -> eyre::Result<String> {
-    let version_file = PathBuf::from(INSTALL_DIR).join(".bin_version");
+    let version_file = PathBuf::from(&*INSTALL_DIR).join(".bin_version");
     let version = fs::read_to_string(version_file)?;
     Ok(version)
 }

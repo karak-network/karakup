@@ -7,6 +7,7 @@ pub mod constants;
 pub mod installer;
 pub mod root;
 pub mod shared;
+pub mod uninstaller;
 pub mod updater;
 
 #[tokio::main]

@@ -1,8 +1,10 @@
+use std::path::PathBuf;
+
 use color_eyre::eyre;
 use color_eyre::owo_colors::OwoColorize;
 use dialoguer::{theme::ColorfulTheme, Confirm};
 
-use crate::constants::CONFIG_DIR;
+use crate::constants::{CLI_NAME, CONFIG_DIR, INSTALL_DIR};
 use crate::shared::{get_current_version, get_latest_version, install_version};
 
 fn compare_versions(v1: &str, v2: &str) -> std::cmp::Ordering {
@@ -28,7 +30,26 @@ fn get_version_parts(version: &str) -> Vec<u32> {
         .collect()
 }
 
+fn check_if_installed() -> eyre::Result<()> {
+    let install_dir = PathBuf::from(&*INSTALL_DIR);
+    let install_path = install_dir.join(CLI_NAME);
+
+    // Check if binary doesn't exists if updating
+    if !install_path.exists() {
+        return Err(eyre::eyre!(
+            "\nKarak CLI is not installed at {}. \n\nTo install, use: `karakup install`",
+            install_path.display()
+        ));
+    }
+    Ok(())
+}
+
 pub async fn update_latest() -> eyre::Result<()> {
+    if let Err(e) = check_if_installed() {
+        println!("{}", e.red());
+        return Ok(());
+    }
+
     let latest_version = get_latest_version().await?;
     let current_version = get_current_version().await?;
 
@@ -44,7 +65,7 @@ pub async fn update_latest() -> eyre::Result<()> {
         println!(
             "{} {}",
             "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            CONFIG_DIR.red()
+            (*CONFIG_DIR).red()
         );
         let confirm = Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt("Do you want to proceed with the update?")
@@ -56,11 +77,19 @@ pub async fn update_latest() -> eyre::Result<()> {
         }
     }
 
-    install_version(None).await?;
+    if let Err(e) = install_version(None, true).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
     Ok(())
 }
 
 pub async fn update_specific(version: String) -> eyre::Result<()> {
+    if let Err(e) = check_if_installed() {
+        println!("{}", e.red());
+        return Ok(());
+    }
+
     let current_version = get_current_version().await?;
 
     if compare_versions(&current_version, &version) == std::cmp::Ordering::Equal {
@@ -75,10 +104,13 @@ pub async fn update_specific(version: String) -> eyre::Result<()> {
         println!(
             "{} {}",
             "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            CONFIG_DIR.red()
+            (*CONFIG_DIR).red()
         );
     }
 
-    install_version(Some(version)).await?;
+    if let Err(e) = install_version(Some(version), true).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
     Ok(())
 }
