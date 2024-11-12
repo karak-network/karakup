@@ -127,13 +127,15 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     let binary_path = temp_dir.path().join("karak");
     let install_path = install_dir.join(CLI_NAME);
 
-    // Remove existing binary if it exists
+    // Check if binary already exists
     if install_path.exists() {
-        fs::remove_file(&install_path)
-            .map_err(|e| eyre::eyre!("Failed to remove existing binary: {}", e))?;
+        return Err(eyre::eyre!(
+            "Karak CLI is already installed at {}. \nTo update to a new version, use: `karakup update`",
+            install_path.display()
+        ));
     }
 
-    // Copy the binary instead of renaming
+    // Copy the binary
     fs::copy(&binary_path, &install_path)
         .map_err(|e| eyre::eyre!("Failed to copy binary to install location: {}", e))?;
 
