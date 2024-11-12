@@ -17,12 +17,12 @@ use reqwest;
 
 use crate::constants::{CLI_NAME, INSTALL_DIR};
 
-pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
+pub async fn install_version(version: Option<String>, update: bool) -> eyre::Result<()> {
     let install_dir = PathBuf::from(&*INSTALL_DIR);
     let install_path = install_dir.join(CLI_NAME);
 
     // Check if binary already exists
-    if install_path.exists() {
+    if install_path.exists() && !update {
         return Err(eyre::eyre!(
             "\nKarak CLI is already installed at {}. \n\nTo update to a new version, use: `karakup update`",
             install_path.display()
