@@ -122,7 +122,7 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     }
 
     // Install the binary
-    let install_dir = PathBuf::from(INSTALL_DIR);
+    let install_dir = PathBuf::from(&*INSTALL_DIR);
     fs::create_dir_all(&install_dir)?;
     let binary_path = temp_dir.path().join("karak");
     let install_path = install_dir.join(CLI_NAME);
@@ -188,7 +188,7 @@ pub async fn get_latest_version() -> eyre::Result<String> {
 }
 
 pub async fn get_current_version() -> eyre::Result<String> {
-    let version_file = PathBuf::from(INSTALL_DIR).join(".bin_version");
+    let version_file = PathBuf::from(&*INSTALL_DIR).join(".bin_version");
     let version = fs::read_to_string(version_file)?;
     Ok(version)
 }

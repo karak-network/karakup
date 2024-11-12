@@ -44,7 +44,7 @@ pub async fn update_latest() -> eyre::Result<()> {
         println!(
             "{} {}",
             "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            CONFIG_DIR.red()
+            (*CONFIG_DIR).red()
         );
         let confirm = Confirm::with_theme(&ColorfulTheme::default())
             .with_prompt("Do you want to proceed with the update?")
@@ -75,7 +75,7 @@ pub async fn update_specific(version: String) -> eyre::Result<()> {
         println!(
             "{} {}",
             "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            CONFIG_DIR.red()
+            (*CONFIG_DIR).red()
         );
     }
 
