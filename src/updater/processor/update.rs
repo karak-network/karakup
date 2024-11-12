@@ -51,31 +51,40 @@ pub async fn update_latest() -> eyre::Result<()> {
     }
 
     let latest_version = get_latest_version().await?;
-    let current_version = get_current_version().await?;
+    match get_current_version().await {
+        Ok(current_version) => {
+            if compare_versions(&current_version, &latest_version) == std::cmp::Ordering::Equal {
+                println!("Latest version {} is already installed", latest_version);
+                return Ok(());
+            }
 
-    if compare_versions(&current_version, &latest_version) == std::cmp::Ordering::Equal {
-        println!("Latest version {} is already installed", latest_version);
-        return Ok(());
-    }
+            let current_parts = get_version_parts(&current_version);
+            let latest_parts = get_version_parts(&latest_version);
 
-    let current_parts = get_version_parts(&current_version);
-    let latest_parts = get_version_parts(&latest_version);
-
-    if current_parts[1] < latest_parts[1] {
-        println!(
-            "{} {}",
-            "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            (*CONFIG_DIR).red()
-        );
-        let confirm = Confirm::with_theme(&ColorfulTheme::default())
-            .with_prompt("Do you want to proceed with the update?")
-            .default(false)
-            .interact()?;
-        if !confirm {
-            println!("Aborting update");
-            return Ok(());
+            if current_parts[1] < latest_parts[1] {
+                println!(
+                    "{} {}",
+                    "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
+                    (*CONFIG_DIR).red()
+                );
+                let confirm = Confirm::with_theme(&ColorfulTheme::default())
+                    .with_prompt("Do you want to proceed with the update?")
+                    .default(false)
+                    .interact()?;
+                if !confirm {
+                    println!("Aborting update");
+                    return Ok(());
+                }
+            }
         }
-    }
+        Err(_) => {
+            println!(
+                "{}",
+                "\n⚠️ Karak CLI was not installed with `karakup`".yellow()
+            );
+            println!("\n{}", "Skipping version comparison check...".blue());
+        }
+    };
 
     if let Err(e) = install_version(None, true).await {
         println!("{}", e.red());
@@ -90,23 +99,31 @@ pub async fn update_specific(version: String) -> eyre::Result<()> {
         return Ok(());
     }
 
-    let current_version = get_current_version().await?;
+    match get_current_version().await {
+        Ok(current_version) => {
+            if compare_versions(&current_version, &version) == std::cmp::Ordering::Equal {
+                println!("Version {} is already installed", version);
+            }
 
-    if compare_versions(&current_version, &version) == std::cmp::Ordering::Equal {
-        println!("Version {} is already installed", version);
-        return Ok(());
-    }
+            let current_parts = get_version_parts(&current_version);
+            let target_parts = get_version_parts(&version);
 
-    let current_parts = get_version_parts(&current_version);
-    let target_parts = get_version_parts(&version);
-
-    if current_parts[1] != target_parts[1] {
-        println!(
-            "{} {}",
-            "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
-            (*CONFIG_DIR).red()
-        );
-    }
+            if current_parts[1] != target_parts[1] {
+                println!(
+                    "{} {}",
+                    "⚠️  Warning: This is a major update and might break your config file. If you face an error then delete the config at ".yellow(),
+                    (*CONFIG_DIR).red()
+                );
+            }
+        }
+        Err(_) => {
+            println!(
+                "{}",
+                "\n⚠️ Karak CLI was not installed with `karakup`".yellow()
+            );
+            println!("\n{}", "Skipping version comparison check...".blue());
+        }
+    };
 
     if let Err(e) = install_version(Some(version), true).await {
         println!("{}", e.red());
