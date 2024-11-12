@@ -56,7 +56,10 @@ pub async fn update_latest() -> eyre::Result<()> {
         }
     }
 
-    install_version(None).await?;
+    if let Err(e) = install_version(None).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
     Ok(())
 }
 
@@ -79,6 +82,9 @@ pub async fn update_specific(version: String) -> eyre::Result<()> {
         );
     }
 
-    install_version(Some(version)).await?;
+    if let Err(e) = install_version(Some(version)).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
     Ok(())
 }

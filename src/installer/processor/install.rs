@@ -5,14 +5,20 @@ use crate::constants::CLI_NAME;
 use crate::shared::install_version;
 
 pub async fn install_latest() -> eyre::Result<()> {
-    install_version(None).await?;
+    if let Err(e) = install_version(None).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
 
     print_post_install_message();
     Ok(())
 }
 
 pub async fn install_specific(version: String) -> eyre::Result<()> {
-    install_version(Some(version)).await?;
+    if let Err(e) = install_version(Some(version)).await {
+        println!("{}", e.red());
+        return Ok(());
+    }
 
     print_post_install_message();
     Ok(())

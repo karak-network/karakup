@@ -18,6 +18,27 @@ use reqwest;
 use crate::constants::{CLI_NAME, INSTALL_DIR};
 
 pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
+    let install_dir = PathBuf::from(&*INSTALL_DIR);
+    let install_path = install_dir.join(CLI_NAME);
+
+    // Check if binary already exists
+    if install_path.exists() {
+        return Err(eyre::eyre!(
+            "\nKarak CLI is already installed at {}. \n\nTo update to a new version, use: `karakup update`",
+            install_path.display()
+        ));
+    }
+
+    let install_path = install_dir.join(CLI_NAME);
+
+    // Check if binary already exists
+    if install_path.exists() {
+        return Err(eyre::eyre!(
+            "Karak CLI is already installed at {}. \nTo update to a new version, use: `karakup update`",
+            install_path.display()
+        ));
+    }
+
     let (platform, os, vendor) = match OS {
         "linux" => ("unknown", "linux", "gnu"),
         "macos" => ("apple", "darwin", ""),
@@ -122,18 +143,8 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     }
 
     // Install the binary
-    let install_dir = PathBuf::from(&*INSTALL_DIR);
     fs::create_dir_all(&install_dir)?;
     let binary_path = temp_dir.path().join("karak");
-    let install_path = install_dir.join(CLI_NAME);
-
-    // Check if binary already exists
-    if install_path.exists() {
-        return Err(eyre::eyre!(
-            "Karak CLI is already installed at {}. \nTo update to a new version, use: `karakup update`",
-            install_path.display()
-        ));
-    }
 
     // Copy the binary
     fs::copy(&binary_path, &install_path)
