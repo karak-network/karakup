@@ -21,7 +21,7 @@ pub async fn install_version(version: Option<String>, update: bool) -> eyre::Res
     let install_dir = PathBuf::from(&*INSTALL_DIR);
     let install_path = install_dir.join(CLI_NAME);
 
-    // Check if binary already exists
+    // Check if binary already exists if not updating
     if install_path.exists() && !update {
         return Err(eyre::eyre!(
             "\nKarak CLI is already installed at {}. \n\nTo update to a new version, use: `karakup update`",
