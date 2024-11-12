@@ -28,6 +28,6 @@ fn print_post_install_message() {
     println!(
         "\nRun `{} {}` to get started",
         CLI_NAME.green().bold(),
-        "config update".green().bold()
+        "configure".green().bold()
     );
 }

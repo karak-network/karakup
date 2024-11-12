@@ -12,12 +12,12 @@ pub async fn uninstall() -> eyre::Result<()> {
     if install_dir.exists() {
         println!(
             "\n{} {}",
-            "Uninstalling Karak CLI version:".yellow(),
-            get_current_version().await.unwrap().yellow()
+            "Uninstalling Karak CLI version:".purple(),
+            get_current_version().await?.purple()
         );
         println!(
-            "{} {}",
-            "Install Directory:".yellow(),
+            "\n{} {}",
+            "Removing install directory -".yellow(),
             install_dir.display()
         );
         std::fs::remove_dir_all(install_dir)?;
