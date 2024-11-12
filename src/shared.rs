@@ -126,8 +126,22 @@ pub async fn install_version(version: Option<String>) -> eyre::Result<()> {
     fs::create_dir_all(&install_dir)?;
     let binary_path = temp_dir.path().join("karak");
     let install_path = install_dir.join(CLI_NAME);
-    fs::rename(binary_path, &install_path)?;
+
+    // Remove existing binary if it exists
+    if install_path.exists() {
+        fs::remove_file(&install_path)
+            .map_err(|e| eyre::eyre!("Failed to remove existing binary: {}", e))?;
+    }
+
+    // Copy the binary instead of renaming
+    fs::copy(&binary_path, &install_path)
+        .map_err(|e| eyre::eyre!("Failed to copy binary to install location: {}", e))?;
+
+    // Set permissions
     fs::set_permissions(&install_path, fs::Permissions::from_mode(0o755))?;
+
+    // Clean up the temporary binary
+    fs::remove_file(&binary_path).ok(); // ignore error if it fails
 
     fs::write(install_dir.join(".bin_version"), &version_display)?;
 
