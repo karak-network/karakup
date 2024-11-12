@@ -29,16 +29,6 @@ pub async fn install_version(version: Option<String>, update: bool) -> eyre::Res
         ));
     }
 
-    let install_path = install_dir.join(CLI_NAME);
-
-    // Check if binary already exists
-    if install_path.exists() {
-        return Err(eyre::eyre!(
-            "Karak CLI is already installed at {}. \nTo update to a new version, use: `karakup update`",
-            install_path.display()
-        ));
-    }
-
     let (platform, os, vendor) = match OS {
         "linux" => ("unknown", "linux", "gnu"),
         "macos" => ("apple", "darwin", ""),
