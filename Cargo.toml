@@ -5,7 +5,10 @@ license = "BUSL-1.1"
 authors = ["Andalusia Labs"]
 edition = "2021"
 repository = "https://github.com/karak-network/karakup"
+description = "Karak CLI installation manager"
 rust-version = "1.79.0"
+readme = "README.md"
+exclude = [".github/**", "dist-workspace.toml"]
 
 [dependencies]
 clap = { version = "4.5.20", features = ["derive"] }
